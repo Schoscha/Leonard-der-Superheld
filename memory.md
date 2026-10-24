@@ -110,7 +110,7 @@ cd /root/leonard-teaser
 node text/render.js
 /root/sk-werbevideo/.venv/bin/python build.py
 ```
-Ergebnis: `/root/leonard-teaser/out/leonard-teaser-16x9.mp4` (Render ca. 3,5 Minuten). Die Dateien `Teaser/build.py` und `Teaser/text/render.js` im Repo sind dieselben wie auf dem VPS.
+Ergebnis: `/root/leonard-teaser/out/leonard-teaser-16x9.mp4` (Render ca. 3,5 Minuten). **Danach verschieben, nicht kopieren** (Sascha, 24.10.: keine Mehrfach-Ablagen): `mv out/leonard-teaser-16x9.mp4 /home/sascha-central/htdocs/central.sascha-kruss.de/ausgabe/video/Leonard_Teaser_16x9.mp4`. Ablage ist nur die Central-Station-Ausgabe (plus das Repo). Die Dateien `Teaser/build.py` und `Teaser/text/render.js` im Repo sind dieselben wie auf dem VPS.
 - Schnitt ändern: Liste `SHOTS` in `build.py` (Clip, Start, Länge in Schlägen, Tempo, Zufahrt, Blitz, Wackeln, Ton).
 - Texte ändern: `blocks()` in `text/render.js`, danach beide Befehle.
 - Hafen-Szene einsetzen: Pixar-Fassung als `clips/H.mp4` ablegen und 2 bis 3 Einträge mit `'H'` in die Steigerung setzen.
