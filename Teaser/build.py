@@ -32,6 +32,7 @@ SHOTS = [
     ('C', 3.00, 3, 1.00, 7, False, False, 0.8),   # VROOOM über der Stadt
     ('C', 4.30, 4, 1.00, 5, False, False, 0.8),   # Papa WHIZZ
     ('A', 5.00, 1, 1.00, 4, False, False, 0.8),   # Leonard rennt
+    'HAFEN',                                      # hier werden die Hafen-Shots eingesetzt (falls clips/H.mp4 da ist)
     ('C', 6.00, 3, 1.00, 5, False, False, 0.8),   # Kinder fliegen, BOING CLANG
     ('A', 3.05, 2, 1.00, 3, True, True, 1.0),     # BÄÄMMM
     ('A', 6.45, 2, 1.00, 4, False, False, 0.9),   # Laser der Schwester
@@ -42,11 +43,16 @@ SHOTS = [
     ('C', 7.45, 8, 0.75, 5, False, False, 0.6),   # Sonnenuntergang-Flug + Titel
     ('END', 9.90, 5, 1.00, 0, False, False, 0.0), # Standbild "BALD."
 ]
+# Hafen-Szene im Pixar-Stil (clips/H.mp4, aus Gemini). Wird nur eingesetzt, wenn die Datei existiert.
+HAFEN = []
+i = SHOTS.index('HAFEN')
+SHOTS[i:i + 1] = HAFEN if (ROOT / 'clips/H.mp4').exists() else []
 CUTS = np.cumsum([0] + [s[2] for s in SHOTS]) * BEAT
 TOTAL = float(CUTS[-1])
-I_DROP, I_TITLE, I_END = 13, 14, 15
+I_DROP, I_TITLE, I_END = len(SHOTS) - 3, len(SHOTS) - 2, len(SHOTS) - 1
+I_KLIMAX = next(j for j, s in enumerate(SHOTS) if s[6])      # erster Shot mit Wackeln = Beginn Höhepunkt
 # Texte (je >= 3 s Standzeit), Zeiten auf Schnitte bezogen
-TEXT = [('tA', CUTS[0] + 0.25, CUTS[2]), ('tB', CUTS[2] + 0.1, CUTS[5]), ('tC', CUTS[5] + 0.1, CUTS[8]),
+TEXT = [('tA', CUTS[0] + 0.25, CUTS[2]), ('tB', CUTS[2] + 0.1, CUTS[5]), ('tC', CUTS[5] + 0.1, CUTS[I_KLIMAX]),
         ('ti', CUTS[I_TITLE] + 0.6, CUTS[I_END]), ('en', CUTS[I_END] + 0.15, TOTAL)]
 
 
@@ -90,7 +96,7 @@ def build_video(name='16x9'):
     n = len(SHOTS)
     chains.append(''.join(labels) + f'concat=n={n}:v=1:a=0,vignette=PI/5[v00]')
     # Verlauf unten für Lesbarkeit der Texte (wie im Lambo-Teaser), nur im Textteil
-    inputs += ['-f', 'lavfi', '-t', f'{CUTS[8]:.3f}', '-i', f'color=black:s={W}x{H}:r={FPS}']
+    inputs += ['-f', 'lavfi', '-t', f'{CUTS[I_KLIMAX]:.3f}', '-i', f'color=black:s={W}x{H}:r={FPS}']
     chains.append(f"[{n}:v]format=rgba,geq=r=0:g=0:b=0:a='255*0.75*pow(max(0,(Y-{H}*0.5)/({H}*0.5)),1.2)'[grad]")
     chains.append('[v00][grad]overlay=eof_action=pass[v0]')
     cur, idx = 'v0', n + 1
@@ -213,17 +219,18 @@ def build_audio():
     for k in range(int(c[2] / BEAT)):
         place(fx, tick(), k * BEAT, 0.25)
     # Steigerung: Puls auf jedem Schlag, Streicher-Ostinato, Braam auf "Helden"
-    for k in range(int((c[8] - c[2]) / BEAT)):
+    K = I_KLIMAX
+    for k in range(int((c[K] - c[2]) / BEAT)):
         place(fx, kick(), c[2] + k * BEAT, 0.55 if k % 2 == 0 else 0.35)
-    place(fx, strings(c[8] - c[2]), c[2], 0.35)
+    place(fx, strings(c[K] - c[2]), c[2], 0.35)
     place(fx, braam(2.4), c[2], 0.7); place(fx, impact(0.8), c[5], 0.6)
     # Höhepunkt: doppelter Puls, Einschlag auf jedem Schnitt, Riser in den Drop
-    for k in range(int((c[I_DROP - 1] - c[8]) / (BEAT / 2))):
-        place(fx, kick(), c[8] + k * BEAT / 2, 0.5)
-    place(fx, strings(c[I_DROP - 1] - c[8], (146.8, 220.0, 293.7)), c[8], 0.45)
-    for j in range(8, I_DROP - 1):
+    for k in range(int((c[I_DROP - 1] - c[K]) / (BEAT / 2))):
+        place(fx, kick(), c[K] + k * BEAT / 2, 0.5)
+    place(fx, strings(c[I_DROP - 1] - c[K], (146.8, 220.0, 293.7)), c[K], 0.45)
+    for j in range(K, I_DROP - 1):
         place(fx, impact(0.7), c[j], 0.75)
-    place(fx, riser(c[I_DROP - 1] - c[6]), c[6], 0.6)
+    place(fx, riser(c[I_DROP - 1] - c[K - 2]), c[K - 2], 0.6)
     # Whoosh vor jedem Schnitt (außer in die Stille)
     for j in range(1, I_END + 1):
         if j != I_DROP - 1:
