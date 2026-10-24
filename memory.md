@@ -25,7 +25,10 @@ Leonards Aussehen (wichtig, damit neue Clips zusammenpassen):
 | Folge | Stand | Datei im Repo | Länge |
 |---|---|---|---|
 | 1. Leonard erwacht | **fertig** (24.10.2026) | `Leonard-erwacht/Leonard_erwacht_FINAL.mp4` | 39 s, 640x360, 24 fps |
+| Teaser „Leonard der Superheld“ (Hollywood-Stil) | **fertig, Version 1** (24.10.2026), Hafen-Szene fehlt noch | `Teaser/Leonard_Teaser_16x9.mp4` | 22,9 s, 1920x1080, 24 fps |
 | 2. ? | Idee offen | – | – |
+
+**Neu seit dem Teaser:** Leonard hat jetzt eine Familie im Team: **Papa** (graue Haare, Bart, grün-goldener Anzug mit „S“-Stern, goldene Schulterpanzer) und die **Schwester** (blond, pinke Katzenaugen-Sonnenbrille, grün-pinker Anzug mit „J“-Stern, Laser aus den Händen). Leonards Anzug trägt ein „L“ im Stern. Referenzbild: `C:\Users\Neu\Videos\Leonard der Superheld\Neuer Ordner\Gemini_Generated_Image_sj810msj810msj81.jpg`.
 
 Bilder für mögliche nächste Szenen gibt es schon (siehe Abschnitt 4): „Boy vowing to hunt villain“ (Leonard schwört, den Bösewicht zu jagen), „Cartoon boy jumping with joy“, „Cartoon boy thinking“. Daraus ließe sich Folge 2 bauen: Leonard entdeckt seine Kräfte und schwört, einen Bösewicht zu jagen.
 
@@ -76,6 +79,44 @@ Der Originalton der Clips bleibt drin (Geräusche, Gähnen, Staunen) und geht an
 Lautstärke am Ende: auf -16 LUFS gebracht (normales Video-Niveau), Spitze -0,9 dBFS.
 
 ---
+
+## 3b. Teaser im Detail
+
+Gebaut mit dem Motion-Skill **social-teaser-video** (Saschas Vorgehen aus dem Lambo-Teaser), Schnitt nach **beat-sync-editing**, geprüft mit **review-loop**. Die Skills liegen auf dem VPS unter `~/.agents/skills/` (Einstieg `motion-hub`).
+
+**Quellen** (Ordner `C:\Users\Neu\Videos\Leonard der Superheld\Neuer Ordner\`):
+- `gemini_generated_video_10c15bc5.mp4` = im Skript **A**: Pose im Zimmer, Papa gegen Roboter, BÄÄMMM, Leonard rennt, BOOOMMM, Laser der Schwester, Wand-Explosion, Familie auf dem Dach
+- `gemini_generated_video_6af2c6fc.mp4` = **C**: Zimmer, Abheben in Wolken, VROOOM über der Stadt, Papa WHIZZ, Kinder fliegen, Sonnenuntergang
+- `gemini_generated_video_ddf18f34.mp4` ist byte-gleich mit 10c15bc5, `Unbenannt_20261024161835.mp4` ist dasselbe Video neu kodiert (nicht gebraucht)
+- `bitte_nochmal_neu_machen_._20261024161835.mp4` = **Hafen-Szene mit echten Menschen** (fotorealistisch). Passt nicht zum Pixar-Stil und ist deshalb **noch nicht im Teaser**. Umwandlung per KI-Video (ElevenLabs Kling/Runway) braucht dort einen bezahlten Tarif. Möglichkeiten: in Gemini neu erzeugen (Prompt unten) oder Pixar-Standbilder (ElevenLabs, ca. 0,18 USD je Bild) als schnelle Schnitte.
+
+**Aufbau** (144 BPM, 10 Bilder pro Schlag, jeder Schnitt liegt auf einem Schlag):
+| Teil | Zeit | Inhalt | Text |
+|---|---|---|---|
+| Aufbau | 0 – 4,2 s | Zimmer (Zeitlupe), Power-Pose | „In einer Welt voller Gefahren …“ |
+| Steigerung | 4,2 – 11,3 s | Abheben, Papa vs. Roboter, VROOOM, WHIZZ, Leonard rennt, Kinder fliegen | „… braucht es Helden.“ / „Diesmal ist es Familiensache.“ |
+| Höhepunkt | 11,3 – 14,6 s | BÄÄMMM, Laser, Wand-Explosion, BOOOMMM (je 2 Schläge, Wackeln, Weißblitz) | – |
+| Stille | 14,6 – 15,0 s | ein Schlag schwarz | – |
+| Drop | 15,0 – 17,5 s | Familie auf dem Dach in Zeitlupe, größter Einschlag | – |
+| Titel | 17,5 – 20,8 s | Sonnenuntergang-Flug | „LEONARD – der Superheld“ |
+| Ende | 20,8 – 22,9 s | Standbild | „BALD. – Nur im Familienkino“ |
+
+Ton: Originalgeräusche der Clips (leiser), dazu selbst erzeugt: Braams (d-Moll), Uhr-Ticken, Puls, Streicher-Ostinato, Whoosh vor jedem Schnitt, Einschläge, Riser in den Drop. Lautheit zweipassig auf -14 LUFS (gemessen -14,3, Spitze -0,7 dBFS). Kino-Balken 2.39:1.
+
+**Neu bauen** (auf dem VPS, Projektordner `/root/leonard-teaser/`, Clips liegen dort in `clips/A.mp4` und `clips/C.mp4`):
+```bash
+ssh sascha-kruss-1
+cd /root/leonard-teaser
+node text/render.js
+/root/sk-werbevideo/.venv/bin/python build.py
+```
+Ergebnis: `/root/leonard-teaser/out/leonard-teaser-16x9.mp4` (Render ca. 3,5 Minuten). Die Dateien `Teaser/build.py` und `Teaser/text/render.js` im Repo sind dieselben wie auf dem VPS.
+- Schnitt ändern: Liste `SHOTS` in `build.py` (Clip, Start, Länge in Schlägen, Tempo, Zufahrt, Blitz, Wackeln, Ton).
+- Texte ändern: `blocks()` in `text/render.js`, danach beide Befehle.
+- Hafen-Szene einsetzen: Pixar-Fassung als `clips/H.mp4` ablegen und 2 bis 3 Einträge mit `'H'` in die Steigerung setzen.
+
+**Prompt für die Hafen-Szene in Gemini (neu erzeugen, Pixar-Stil):**
+> 3D Pixar animation style. A grey-haired bearded father in a green and gold superhero suit with a gold "S" star, his son in a green cap and green-blue suit with an "L" star, and his blonde daughter with pink cat-eye sunglasses in a green-pink suit with a "J" star stand side by side on a sunny container harbor with cranes. The father flexes, the boy shouts and unleashes a glowing green energy blast that lifts the parked cars, the girl turns into green energy and back, then the kids do a martial-arts kick and all three end in a heroic pose. Cinematic camera, warm sunlight, 10 seconds.
 
 ## 4. Wo liegt was?
 
@@ -183,3 +224,4 @@ Einem Agenten (Claude, Gemini, OpenCode …) reicht als Auftrag: „Lies memory.
 | Datum | Wer | Was |
 |---|---|---|
 | 2026-10-24 | Claude (Windows-PC) | Folge 1 „Leonard erwacht“ geschnitten, Effekte erzeugt, Repo angelegt, memory.md geschrieben |
+| 2026-10-24 | Claude (Windows-PC) | Teaser V1 mit Motion-Skills (social-teaser-video, beat-sync-editing, review-loop) gebaut, Hafen-Szene offen |
